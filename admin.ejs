@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Dashboard</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+
+<body style="background-color: rgb(248, 239, 230);">
+
+  <nav class="navbar navbar-expand-lg navbar-light">
+  <div class="container-fluid">
+    <a class="navbar-brand ms-5" href="#" style="font-weight: bold; font-size: 25px;">Pet.care</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarText" aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarText" style="font-size: 18px; color: black;">
+      <ul class="navbar-nav mx-auto mb-2 mb-lg-0 justify-content-center">
+        <li class="nav-item ms-5">
+          <a class="nav-link active" aria-current="page" href="#">Home</a>
+        </li>
+        <li class="nav-item ms-5">
+          <a class="nav-link active" href="#">Appointment list</a>
+        </li>
+        <li class="nav-item ms-5">
+          <a class="nav-link active" href="#">Edit pricing</a>
+        </li>
+      </ul>
+
+      <span class="navbar-text">
+        <% if (currentUser) { %>
+          <span class="me-2" style="font-weight: bold;">Welcome, <%= currentUser.username %></span>
+          <a href="/logout" class="me-2" style="border-radius: 25px; padding: 10px 20px; border: none; text-decoration: none; background-color: #573f1d73; color: black; font-weight: bold;">Logout</a>
+        <% } else { %>
+          <a href="/login" class="me-2" style="border-radius: 25px; padding: 10px 20px; border: none; text-decoration: none; background-color: #573f1d73; color: black; font-weight: bold;">Login</a>
+        <% } %>
+      </span>
+    </div>
+  </div>
+  </nav>
+</body>
+</html>
