@@ -4,18 +4,17 @@
 // npm install ejs
 // npm install mysql2
 // npm install multer
+// npm install express-session
+// npm install connect-flash
 // To run it:
 // npx nodemon app.js
 const express = require('express');
 const mysql = require('mysql2');
 const multer = require('multer');
 const app = express();
-const express = require('express');
-const db = require('./db'); // Assuming your db connection is in db.js
 
-app.get('/', (req, res) => {
-    res.render('index', { user: req.session.user, messages: req.flash('success')});
-});
+const session = require('express-session');
+const flash = require('connect-flash');
 
 // Set up multer for file uploads
 const storage = multer.diskStorage({
@@ -28,14 +27,14 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-const connection = mysql.createConnection({
+const db = mysql.createConnection({
     host: 'c237-all.mysql.database.azure.com',
     user: 'c237admin',
     password: 'c2372025!',
     database: 'c237_016_24045392'
 });
 
-connection.connect((err) => {
+db.connect((err) => {
     if (err) {
         console.error('Error connecting to MySQL:', err);
         return;
@@ -43,22 +42,33 @@ connection.connect((err) => {
     console.log('Connected to MySQL database');
 });
 
-// Set up view engine
-app.set('view engine', 'ejs');
-
 // enable form processing
-app.use(express.urlencoded({
-    extended: false
-}));
+app.use(express.urlencoded({ extended: false }));
 // enable static files
 app.use(express.static('public'));
+
+app.use(session({
+    secret: 'secret',
+    resave: false,
+    saveUninitialized: true,
+    // Session expires after 1 week of inactivity
+    cookie: { maxAge: 1000 * 60 * 60 * 24 * 7 }
+}));
+app.use(flash());
+
+// Set up view engine
+app.set('view engine', 'ejs');
 
 app.use((req, res, next) => {
     res.locals.currentUser = req.session.user || null;
     next();
 });
- 
-///////////////////////////////////////////////////////////////////////////////////////IRFAH'S CODE ///////////////////////////////////////////////////////////////////////////////////////////////////
+
+app.get('/', (req, res) => {
+    res.render('index', { user: req.session.user, messages: req.flash('success') });
+});
+
+//////////////////////////////////////// //IRFAH'S CODE START///////////////////////////////////////////////////////////////////////////////////////////////////
 const checkAuthenticated = (req, res, next) => {
     if (req.session.user) {
         return next();
@@ -76,26 +86,25 @@ const checkAdmin = (req, res, next) => {
         res.redirect('/dashboard');
     }
 };
- 
+
 // Routes
 app.get('/', (req, res) => {
-    res.render('index', { user: req.session.user, messages: req.flash('success')});
+    res.render('index', { user: req.session.user, messages: req.flash('success') });
 });
- 
+
 app.get('/register', (req, res) => {
     res.render('register', { messages: req.flash('error'), formData: req.flash('formData')[0] });
 });
- 
- 
+
+
 //******** TODO: Create a middleware function validateRegistration ********//
-const validateRegistration = (req, res, next) =>
-{
-    const {username, email, password, contact, role} = req.body;
- 
+const validateRegistration = (req, res, next) => {
+    const { username, email, password, contact, role } = req.body;
+
     if (!username || !email || !password || !contact || !role) {
         return res.status(400).send('All fields are required.');
     }
-   
+
     if (password.length < 6) {
         req.flash('error', 'Password should be at least 6 or more characters long');
         req.flash('formData', req.body);
@@ -103,12 +112,12 @@ const validateRegistration = (req, res, next) =>
     }
     next();
 };
- 
+
 //******** TODO: Integrate validateRegistration into the register route. ********//
 app.post('/register', validateRegistration, (req, res) => {
     //******** TODO: Update register route to include role. ********//
-    const {username, email, password, contact, role} = req.body;
- 
+    const { username, email, password, contact, role } = req.body;
+
     const sql = 'INSERT INTO users (username, email, password, contact, role) VALUES (?, ?, SHA1(?), ?, ? )';
     db.query(sql, [username, email, password, contact, role], (err, result) => {
         if (err) {
@@ -119,7 +128,7 @@ app.post('/register', validateRegistration, (req, res) => {
         res.redirect('/login');
     });
 });
- 
+
 //******** TODO: Insert code for login routes to render login page below ********//
 app.get('/login', (req, res) => {
     res.render('login', {
@@ -127,7 +136,7 @@ app.get('/login', (req, res) => {
         errors: req.flash('error')
     });
 });
- 
+
 //******** TODO: Insert code for login routes for form submission below ********//
 app.post('/login', (req, res) => {
     const { email, password } = req.body;
@@ -163,7 +172,7 @@ app.get('/dashboard', checkAuthenticated, (req, res) => {
 });
 //******** TODO: Insert code for admin route to render dashboard page for admin. ********//
 app.get('/admin', checkAuthenticated, checkAdmin, (req, res) => {
-    res.render('admin', { user: req.session.user});
+    res.render('admin', { user: req.session.user });
 });
 
 
@@ -176,25 +185,78 @@ app.get('/logout', (req, res) => {
         res.redirect('/login');
     });
 });
+///////////////////////////////////////////////IRFAH'S CODE END///////////////////////////////////////////////////////////////////////////////////////////////////
 
-///////////////////////////////////////////////////////////////////////////////////////IRFAH'S CODE ///////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////// CHARLENE START /////////////////////////////////////////////
+app.get('/booking', checkAuthenticated, (req, res) => {
+    res.render('booking', { user: req.session.user, messages: req.flash('error') });
+});
 
+app.post('/booking', checkAuthenticated, (req, res) => {
+    const { pet_name, species, breed, appointment_date } = req.body;
+    const username = req.session.user.username;
 
-// Delete a user by ID
-app.get('/delete/:id', (req, res) => {
-  const userId = req.params.id;
-
-  const query = 'DELETE FROM users WHERE id = ?';
-
-  db.query(query, [userId], (err, result) => {
-    if (err) {
-      console.error('Error deleting user:', err);
-      return res.status(500).send('Error deleting user.');
+    if (!pet_name || !species || !breed || !appointment_date) {
+        req.flash('error', 'All fields are required.');
+        return res.redirect('/booking');
     }
 
-    res.redirect('/'); // or res.send('User deleted.');
-  });
+    const sql = `INSERT INTO booking (username, pet_name, species, breed, appointment_date)
+                 VALUES (?, ?, ?, ?, ?)`;
+
+    db.query(sql, [username, pet_name, species, breed, appointment_date], (err, result) => {
+        if (err) {
+            console.error('Error inserting booking:', err);
+            req.flash('error', 'Failed to book appointment.');
+            return res.redirect('/booking');
+        }
+
+        req.flash('success', 'Appointment booked successfully!');
+        res.redirect('/');
+    });
 });
+
+app.get('/bookings_user', (req, res) => {
+    if (!req.session.user) {
+        req.flash('error', 'You must be logged in to view your bookings.');
+        return res.redirect('/login');
+    }
+
+    const username = req.session.user.username;
+
+    const sql = 'SELECT * FROM booking WHERE username = ?';
+    db.query(sql, [username], (err, results) => {
+        if (err) {
+            console.error('Error fetching user bookings:', err);
+            return res.status(500).send('Server error');
+        }
+
+        res.render('bookings_user', {
+            bookings: results,
+            user: req.session.user,
+            messages: req.flash('success')
+        });
+    });
+});
+///////////////////////////// CHARLENE END ///////////////////////////////////////////////
+
+////////////// SHOBIKA START ///////////////////////////////////////
+// Delete a user by ID
+app.get('/delete/:id', (req, res) => {
+    const userId = req.params.id;
+
+    const query = 'DELETE FROM users WHERE id = ?';
+
+    db.query(query, [userId], (err, result) => {
+        if (err) {
+            console.error('Error deleting user:', err);
+            return res.status(500).send('Error deleting user.');
+        }
+
+        res.redirect('/'); // or res.send('User deleted.');
+    });
+});
+///////////////// SHOBIKA END ////////////////////////////////////////////////
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
