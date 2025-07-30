@@ -53,7 +53,12 @@ app.use(express.urlencoded({
 // enable static files
 app.use(express.static('public'));
 
-//check authentication 
+app.use((req, res, next) => {
+    res.locals.currentUser = req.session.user || null;
+    next();
+});
+ 
+///////////////////////////////////////////////////////////////////////////////////////IRFAH'S CODE ///////////////////////////////////////////////////////////////////////////////////////////////////
 const checkAuthenticated = (req, res, next) => {
     if (req.session.user) {
         return next();
@@ -63,7 +68,6 @@ const checkAuthenticated = (req, res, next) => {
     }
 };
 
-//role 
 const checkAdmin = (req, res, next) => {
     if (req.session.user.role === 'admin') {
         return next();
@@ -73,12 +77,17 @@ const checkAdmin = (req, res, next) => {
     }
 };
  
+// Routes
+app.get('/', (req, res) => {
+    res.render('index', { user: req.session.user, messages: req.flash('success')});
+});
  
 app.get('/register', (req, res) => {
     res.render('register', { messages: req.flash('error'), formData: req.flash('formData')[0] });
 });
  
  
+//******** TODO: Create a middleware function validateRegistration ********//
 const validateRegistration = (req, res, next) =>
 {
     const {username, email, password, contact, role} = req.body;
@@ -94,9 +103,10 @@ const validateRegistration = (req, res, next) =>
     }
     next();
 };
-
-//register 
+ 
+//******** TODO: Integrate validateRegistration into the register route. ********//
 app.post('/register', validateRegistration, (req, res) => {
+    //******** TODO: Update register route to include role. ********//
     const {username, email, password, contact, role} = req.body;
  
     const sql = 'INSERT INTO users (username, email, password, contact, role) VALUES (?, ?, SHA1(?), ?, ? )';
@@ -109,8 +119,8 @@ app.post('/register', validateRegistration, (req, res) => {
         res.redirect('/login');
     });
 });
-
-//login
+ 
+//******** TODO: Insert code for login routes to render login page below ********//
 app.get('/login', (req, res) => {
     res.render('login', {
         messages: req.flash('success'),
@@ -118,6 +128,7 @@ app.get('/login', (req, res) => {
     });
 });
  
+//******** TODO: Insert code for login routes for form submission below ********//
 app.post('/login', (req, res) => {
     const { email, password } = req.body;
 
@@ -140,6 +151,7 @@ app.post('/login', (req, res) => {
             // Redirect to home page instead of dashboard
             res.redirect('/');
         } else {
+            // Invalid credentials
             req.flash('error', 'Invalid email or password.');
             res.redirect('/login');
         }
@@ -149,16 +161,24 @@ app.post('/login', (req, res) => {
 app.get('/dashboard', checkAuthenticated, (req, res) => {
     res.render('dashboard', { user: req.session.user });
 });
-
+//******** TODO: Insert code for admin route to render dashboard page for admin. ********//
 app.get('/admin', checkAuthenticated, checkAdmin, (req, res) => {
     res.render('admin', { user: req.session.user});
 });
 
 
 app.get('/logout', (req, res) => {
-    req.session.destroy(); //destroy the session for user 
-    res.redirect('/');
+    req.session.destroy(err => {
+        if (err) {
+            return res.redirect('/');
+        }
+        res.clearCookie('connect.sid');
+        res.redirect('/login');
+    });
 });
+
+///////////////////////////////////////////////////////////////////////////////////////IRFAH'S CODE ///////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 // Delete a user by ID
 app.get('/delete/:id', (req, res) => {
