@@ -10,6 +10,10 @@ const express = require('express');
 const mysql = require('mysql2');
 const multer = require('multer');
 const app = express();
+const express = require('express');
+const db = require('./db'); // Assuming your db connection is in db.js
+
+
 
 // Set up multer for file uploads
 const storage = multer.diskStorage({
@@ -46,3 +50,21 @@ app.use(express.urlencoded({
 }));
 // enable static files
 app.use(express.static('public'));
+
+
+// Delete a user by ID
+app.get('/delete/:id', (req, res) => {
+  const userId = req.params.id;
+
+  const query = 'DELETE FROM users WHERE id = ?';
+
+  db.query(query, [userId], (err, result) => {
+    if (err) {
+      console.error('Error deleting user:', err);
+      return res.status(500).send('Error deleting user.');
+    }
+
+    // Redirect or confirm deletion
+    res.redirect('/'); // or res.send('User deleted.');
+  });
+});
