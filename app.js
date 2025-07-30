@@ -241,7 +241,7 @@ app.get('/bookings_user', (req, res) => {
 ///////////////////////////// CHARLENE END ///////////////////////////////////////////////
 
 ///////////////// maha start ///////////////////////////////
-app.get('/updateBooking/:id',checkAuthenticated, checkAdmin, (req,res) => {
+app.get('/updateAppointment/:id',checkAuthenticated, checkAdmin, (req,res) => {
     const booking_id = req.params.id;
     const sql = 'SELECT * FROM booking WHERE booking_id = ?';
 
@@ -249,23 +249,23 @@ app.get('/updateBooking/:id',checkAuthenticated, checkAdmin, (req,res) => {
         if (error) throw error;
 
         if (results.length > 0) {
-            res.render('updateBooking', { booking: results[0] });
+            res.render('updateAppointment', { booking: results[0] });
         } else {
-            res.status(404).send('Booking not found');
+            res.status(404).send('Appointment not found');
         }
     });
 });
 
-app.post('/updateBooking/:id', (req, res) => {
-    const productId = req.params.id;
+app.post('/updateAppointment/:id', (req, res) => {
+    const booking_id = req.params.id;
     const { username, pet_name, species, breed, appointment_date } = req.body;
 
     const sql = 'UPDATE booking SET username = ? , pet_name = ?, species = ?, breed =?, appointment_date = ?, WHERE booking_id = ?';
 
     connection.query(sql, [username, pet_name, species, breed, appointment, booking_id], (error, results) => {
         if (error) {
-            console.error("Error updating booking:", error);
-            res.status(500).send('Error updating booking');
+            console.error("Error updating appointment:", error);
+            res.status(500).send('Error updating appointment');
         } else {
             res.redirect('/');
         }
