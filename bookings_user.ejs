@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head> <!-- by Charlene-->
+    <title>My Bookings</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body style="background-color: rgb(248, 239, 230);">
+    <div class="container mt-5">
+        <h2 class="mb-4">Appointments</h2>
+
+        <% if (bookings.length> 0) { %>
+            <table class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>Pet Name</th>
+                        <th>Species</th>
+                        <th>Breed</th>
+                        <th>Appointment Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% bookings.forEach(function(booking) { %>
+                        <tr>
+                            <td>
+                                <%= booking.pet_name %>
+                            </td>
+                            <td>
+                                <%= booking.species %>
+                            </td>
+                            <td>
+                                <%= booking.breed %>
+                            </td>
+                            <td>
+                                <%= booking.appointment_date.toLocaleString() %>
+                            </td>
+                        </tr>
+                        <% }); %>
+                </tbody>
+            </table>
+            <% } else { %>
+                <p>You have no upcoming appointments.</p>
+                <% } %>
+    </div>
+</body>
+</html>
