@@ -25,7 +25,7 @@ const upload = multer({ storage: storage });
 const connection = mysql.createConnection({
     host: 'zvu0wa.h.filess.io',
     user: 'C237PetClinic_smallercap',
-    password: 'password: 6b2fa2706f3bf2aca41d226479935c297597038e',
+    password: '6b2fa2706f3bf2aca41d226479935c297597038e',
     database: 'C237PetClinic_smallercap'
 });
 
