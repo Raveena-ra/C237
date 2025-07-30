@@ -26,7 +26,7 @@ const connection = mysql.createConnection({
     host: 'c237-all.mysql.database.azure.com',
     user: 'c237admin',
     password: 'c2372025!',
-    database: 'C237_016_24045392'
+    database: 'c237_016_24045392'
 });
 
 connection.connect((err) => {
