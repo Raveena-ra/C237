@@ -37,7 +37,8 @@
                 </ul>
                 <span class="navbar-text">
                     <% if (currentUser) { %>
-                        <span class="me-2" style="font-weight: bold;">Welcome, <%= currentUser.username %></span>
+                        <span class="me-2" style="font-weight: bold; font-size: 30px; text-decoration: underline; margin-right: 15px; padding: 10px 15px; border: 2px solid #b3883b; border-radius: 12px; box-shadow: 2px 2px 6px rgba(0,0,0,0.2); color: #4e3b17;">
+                        Welcome, <%= currentUser.username %></span>
                         <a href="/logout" class="me-2"
                             style="border-radius: 25px; padding: 10px 20px; border: none; text-decoration: none; background-color: #573f1d73; color: black; font-weight: bold;">Logout</a>
                         <% } else { %>
