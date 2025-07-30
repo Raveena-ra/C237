@@ -256,7 +256,7 @@ app.get('/updateBooking/:id',checkAuthenticated, checkAdmin, (req,res) => {
     });
 });
 
-app.post('/updateBooking/:id', upload.single('image'), (req, res) => {
+app.post('/updateBooking/:id', (req, res) => {
     const productId = req.params.id;
     const { username, pet_name, species, breed, appointment_date } = req.body;
 
