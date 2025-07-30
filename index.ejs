@@ -1,98 +1,109 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pet Care</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pet Care</title>
 
-  <!--Bootstrap CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
-
-  <link rel="stylesheet" href="/styles.css">
+    <!--Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+        crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="/styles.css">
 </head>
 
 <body style="background-color: rgb(248, 239, 230);">
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <div class="container-fluid">
+            <a class="navbar-brand ms-5" href="#" style="font-weight: bold; font-size: 25px;">Pet.care</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarText"
+                aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
 
-  <nav class="navbar navbar-expand-lg navbar-light">
-  <div class="container-fluid">
-    <a class="navbar-brand ms-5" href="#" style="font-weight: bold; font-size: 25px;">Pet.care</a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarText" aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
-    </button>
+            <div class="collapse navbar-collapse" id="navbarText" style="font-size: 18px; color: black;">
+                <ul class="navbar-nav mx-auto mb-2 mb-lg-0 justify-content-center">
+                    <li class="nav-item ms-5">
+                        <a class="nav-link active" aria-current="page" href="">Home</a>
+                    </li>
+                    <li class="nav-item ms-5">
+                        <a class="nav-link active" href="/bookings_user">My Appointments</a>
+                    </li>
+                    <!-- <li class="nav-item ms-5">
+                        <a class="nav-link active" href="#">Pricing</a>
+                    </li> -->
+                </ul>
+                <span class="navbar-text">
+                    <% if (currentUser) { %>
+                        <span class="me-2" style="font-weight: bold;">Welcome, <%= currentUser.username %></span>
+                        <a href="/logout" class="me-2"
+                            style="border-radius: 25px; padding: 10px 20px; border: none; text-decoration: none; background-color: #573f1d73; color: black; font-weight: bold;">Logout</a>
+                        <% } else { %>
+                            <a href="/login" class="me-2"
+                                style="border-radius: 25px; padding: 10px 20px; border: none; text-decoration: none; background-color: #573f1d73; color: black; font-weight: bold;">Login</a>
+                            <% } %>
+                                <a href="/register" class="me-2"
+                                    style="border-radius: 25px; padding: 10px 20px; border: none; text-decoration: none; background-color: #573f1d73; color: black; font-weight: bold;">Sign up</a>
+                </span>
+            </div>
+        </div>
+    </nav>
+    <br>
 
-    <div class="collapse navbar-collapse" id="navbarText" style="font-size: 18px; color: black;">
-      <ul class="navbar-nav mx-auto mb-2 mb-lg-0 justify-content-center">
-        <li class="nav-item ms-5">
-          <a class="nav-link active" aria-current="page" href="#">Home</a>
-        </li>
-        <li class="nav-item ms-5">
-          <a class="nav-link active" href="#">Appointment</a>
-        </li>
-        <li class="nav-item ms-5">
-          <a class="nav-link active" href="#">Pricing</a>
-        </li>
-      </ul>
-
-      <span class="navbar-text">
-        <% if (currentUser) { %>
-          <span class="me-2" style="font-weight: bold;">Welcome, <%= currentUser.username %></span>
-          <a href="/logout" class="me-2" style="border-radius: 25px; padding: 10px 20px; border: none; text-decoration: none; background-color: #573f1d73; color: black; font-weight: bold;">Logout</a>
-        <% } else { %>
-          <a href="/login" class="me-2" style="border-radius: 25px; padding: 10px 20px; border: none; text-decoration: none; background-color: #573f1d73; color: black; font-weight: bold;">Login</a>
-        <% } %>
-        <a href="/register" class= "me-2" style="border-radius: 25px; padding: 10px 20px; border: none; text-decoration: none; background-color: #573f1d73; color: black; font-weight: bold;">Sign up</a>
-      </span>
-    </div>
-  </div>
-  </nav>
-  <br> 
-
-  <section class="hero">
-    <div class="text ms-5">
-      <h1>Care of your <br><strong>Little pets.</strong></h1>
-      <p>We believe finding a reliable, professional pet sitter should be easy. <br> So we make sure every member of our Family.</p>
-      <button style="border-radius: 25px; padding: 10px 20px; border: none;">Our Service</button>
-      <a href="#" style="display: inline-block; border-radius: 25px; padding: 10px 20px; background-color: #3a2405a0; color: white; text-decoration: none; border: none;">Book appointment Now</a>
-    </div>
-    <!-- <div class="hero-images">
+    <section class="hero">
+        <div class="text ms-5">
+            <h1>Care for your <br><strong>precious pets.</strong></h1>
+            <p>We believe in treating your companions with the best care possible. <br> So we make sure every member
+                of our family is happy and healthy.</p>
+            <!-- <button style="border-radius: 25px; padding: 10px 20px; border: none;">Our Service</button> -->
+            <a href="/booking"
+                style="display: inline-block; border-radius: 25px; padding: 10px 20px; background-color: #3a2405a0; color: white; text-decoration: none; border: none;">
+                Book an Appointment</a>
+        </div>
+        <!-- <div class="hero-images">
       <img src="" alt="Cat">
       <img src="" alt="Kitten">
     </div> -->
-  </section>
-
-  <br>
-
-  <section class="info-section" style="text-align: center; margin: 20px auto; display: block; border-radius: 100px; max-width: 1200px; padding: 100px; 
+    </section>
+    <br>
+    <section class="info-section"
+        style="text-align: center; margin: 20px auto; display: block; border-radius: 100px; max-width: 1200px; padding: 100px; 
   background-color: #f0e5d775; color: rgb(2, 2, 2); text-decoration: none; border: none; box-shadow: 0 0 20px 5px rgba(184, 149, 101, 0.5);">
-    <h1 style="font-weight: bold;">How can we help</h1>
-    <p>While you are on vacation or at work can be stressful.</p>
-    <!-- <img src="/images/puppy.png" alt="Puppy"> -->
-  </section>
-  <br>
+        <h1 style="font-weight: bold;">How we can help</h1>
+        <br>
+        <p>Vaccines</p>
+        <p>Routine checkups</p>
+        <p>Spaying</p>
+        <p>Dental care</p>
+        <!-- <img src="/images/puppy.png" alt="Puppy"> -->
+    </section>
+    <br>
 
-  <section class="how-to-care">
-    <!-- <img src="/images/cat3.png" alt="Cat"> -->
-    <div style="padding-right: 50px; text-align: right;">
-      <h2 style="font-weight: bold;">How to take care <br>— of your pets</h2>
-      <p>As a pet parent, leaving your pets at home while you are on vacation or at work can be stressful. 
-        <br>Finding someone to take care of your cat or dog may seem easy, but it can really be a hassle. 
-        <br>We all know that anyone can walk a dog or pet sit, but what if your furry friend has other needs?</p>
-    </div>
-  </section>
-  <br>
-  <footer>
-    <div class="newsletter ms-5">
-      <h3>Subscribe Newsletter & get Pet.care News</h3>
-      <form action="/subscribe" method="POST">
-        <input type="email" name="email" placeholder="Enter your E-mail address">
-        <button type="submit" style="border-radius: 25px; padding: 10px 20px; border: lightgrey;">Subscribe Now</button>
-      </form>
-    </div>
-  </footer>
-  <br></br>
-
-
+    <section class="how-to-care">
+        <!-- <img src="/images/cat3.png" alt="Cat"> -->
+        <div style="padding-right: 50px; text-align: right;">
+            <h2 style="font-weight: bold;">How to take care <br>— of your pets</h2>
+            <p>Keeping your pets healthy is just as important as feeding them or giving them love.
+                <br>Whether it's time for annual vaccines, a wellness check, or something more serious,
+                finding the right vet is key.
+                <br>After all, not every clinic is prepared to handle the unique needs of your furry family members.
+            </p>
+        </div>
+    </section>
+    <br>
+    <footer>
+        <div class="newsletter ms-5">
+            <h3>Subscribe to our Newsletter</h3>
+            <p>Receive Pet.care News and Promotions</p>
+            <form action="/subscribe" method="POST">
+                <input type="email" name="email" placeholder="Enter your E-mail address">
+                <button type="submit" style="border-radius: 25px; padding: 10px 20px; border: lightgrey;">
+                    Subscribe Now</button>
+            </form>
+        </div>
+    </footer>
+    <br></br>
 </body>
 </html>
-
