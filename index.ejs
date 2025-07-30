@@ -35,7 +35,12 @@
       </ul>
 
       <span class="navbar-text">
-        <a href="/login" class= "me-2" style="border-radius: 25px; padding: 10px 20px; border: none; text-decoration: none; background-color: #573f1d73; color: black; font-weight: bold;">login</a>
+        <% if (currentUser) { %>
+          <span class="me-2" style="font-weight: bold;">Welcome, <%= currentUser.username %></span>
+          <a href="/logout" class="me-2" style="border-radius: 25px; padding: 10px 20px; border: none; text-decoration: none; background-color: #573f1d73; color: black; font-weight: bold;">Logout</a>
+        <% } else { %>
+          <a href="/login" class="me-2" style="border-radius: 25px; padding: 10px 20px; border: none; text-decoration: none; background-color: #573f1d73; color: black; font-weight: bold;">Login</a>
+        <% } %>
         <a href="/register" class= "me-2" style="border-radius: 25px; padding: 10px 20px; border: none; text-decoration: none; background-color: #573f1d73; color: black; font-weight: bold;">Sign up</a>
       </span>
     </div>
@@ -90,3 +95,4 @@
 
 </body>
 </html>
+
