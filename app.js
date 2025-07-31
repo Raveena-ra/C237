@@ -79,7 +79,7 @@ const checkAuthenticated = (req, res, next) => {
 };
 
 const checkAdmin = (req, res, next) => {
-    if (req.session.user.role === 'admin') {
+    if (req.session.user && req.session.user.role === 'admin') {
         return next();
     } else {
         req.flash('error', 'Access denied');
@@ -88,9 +88,7 @@ const checkAdmin = (req, res, next) => {
 };
 
 // Routes
-app.get('/', (req, res) => {
-    res.render('index', { user: req.session.user, messages: req.flash('success') });
-});
+// Note: Duplicate app.get('/') removed for clarity, one is already defined above
 
 app.get('/register', (req, res) => {
     res.render('register', { messages: req.flash('error'), formData: req.flash('formData')[0] });
@@ -102,7 +100,9 @@ const validateRegistration = (req, res, next) => {
     const { username, email, password, contact, role } = req.body;
 
     if (!username || !email || !password || !contact || !role) {
-        return res.status(400).send('All fields are required.');
+        req.flash('error', 'All fields are required.');
+        req.flash('formData', req.body);
+        return res.redirect('/register');
     }
 
     if (password.length < 6) {
@@ -121,7 +121,10 @@ app.post('/register', validateRegistration, (req, res) => {
     const sql = 'INSERT INTO users (username, email, password, contact, role) VALUES (?, ?, SHA1(?), ?, ? )';
     db.query(sql, [username, email, password, contact, role], (err, result) => {
         if (err) {
-            throw err;
+            console.error('Error during registration:', err);
+            req.flash('error', 'Registration failed. Please try again.');
+            req.flash('formData', req.body);
+            return res.redirect('/register');
         }
         console.log(result);
         req.flash('success', 'Registration successful! Please log in.');
@@ -150,7 +153,9 @@ app.post('/login', (req, res) => {
     const sql = 'SELECT * FROM users WHERE email = ? AND password = SHA1(?)';
     db.query(sql, [email, password], (err, results) => {
         if (err) {
-            throw err;
+            console.error('Error during login:', err);
+            req.flash('error', 'An error occurred during login. Please try again.');
+            return res.redirect('/login');
         }
 
         if (results.length > 0) {
@@ -179,6 +184,7 @@ app.get('/admin', checkAuthenticated, checkAdmin, (req, res) => {
 app.get('/logout', (req, res) => {
     req.session.destroy(err => {
         if (err) {
+            console.error('Error destroying session:', err);
             return res.redirect('/');
         }
         res.clearCookie('connect.sid');
@@ -212,20 +218,37 @@ app.post('/booking', checkAuthenticated, (req, res) => {
         }
 
         req.flash('success', 'Appointment booked successfully!');
-        res.redirect('/');
+        res.redirect('/bookings_user');
     });
 });
 
-app.get('/bookings_user', (req, res) => {
-    if (!req.session.user) {
-        req.flash('error', 'You must be logged in to view your bookings.');
-        return res.redirect('/login');
-    }
+app.get('/bookings_user', checkAuthenticated, (req, res) => {
+    ///////////// Raveena start //////////////////////////////////////////////////
+    const searchTerm = req.query.search;
+    const statusFilter = req.query.status || 'all';
 
     const username = req.session.user.username;
 
-    const sql = 'SELECT * FROM booking WHERE username = ?';
-    db.query(sql, [username], (err, results) => {
+    let sql = 'SELECT * FROM booking WHERE username = ?';
+    const params = [username];
+
+    // Add filter conditions based on appointment status
+    if (statusFilter === 'past') {
+        sql += ' AND appointment_date < NOW()';
+    } else if (statusFilter === 'upcoming') {
+        sql += ' AND appointment_date >= NOW()';
+    }
+
+    // Add filter conditions for pet name, species, breed if searchTerm exists
+    if (searchTerm) {
+        sql += ' AND (pet_name LIKE ? OR species LIKE ? OR breed LIKE ?)';
+        const likeTerm = `%${searchTerm}%`;
+        params.push(likeTerm, likeTerm, likeTerm);
+    }
+
+    sql += ' ORDER BY appointment_date ASC'; // Consistent ordering for display
+
+    db.query(sql, params, (err, results) => {
         if (err) {
             console.error('Error fetching user bookings:', err);
             return res.status(500).send('Server error');
@@ -234,89 +257,84 @@ app.get('/bookings_user', (req, res) => {
         res.render('bookings_user', {
             bookings: results,
             user: req.session.user,
-            messages: req.flash('success')
+            messages: req.flash('success'),
+            search: searchTerm,
+            status: statusFilter
         });
     });
+    ///////////////////// Raveena end ////////////////////////////////////////
 });
 ///////////////////////////// CHARLENE END ///////////////////////////////////////////////
 
 ///////////////// maha start ///////////////////////////////
-app.get('/updateAppointment/:id',checkAuthenticated, checkAdmin, (req,res) => {
+app.get('/updateAppointment/:id', checkAuthenticated, checkAdmin, (req, res) => {
     const booking_id = req.params.id;
     const sql = 'SELECT * FROM booking WHERE booking_id = ?';
 
-    connection.query(sql , [booking_id], (error, results) => {
-        if (error) throw error;
+    db.query(sql, [booking_id], (error, results) => {
+        if (error) {
+            console.error('Error fetching appointment for update:', error);
+            return res.status(500).send('Error retrieving appointment for update.');
+        }
 
         if (results.length > 0) {
-            res.render('updateAppointment', { booking: results[0] });
+            res.render('updateAppointment', { booking: results[0], user: req.session.user });
         } else {
             res.status(404).send('Appointment not found');
         }
     });
 });
 
-app.post('/updateAppointment/:id', (req, res) => {
+app.post('/updateAppointment/:id', checkAuthenticated, checkAdmin, (req, res) => {
     const booking_id = req.params.id;
     const { username, pet_name, species, breed, appointment_date } = req.body;
 
-    const sql = 'UPDATE booking SET username = ? , pet_name = ?, species = ?, breed =?, appointment_date = ?, WHERE booking_id = ?';
+    const sql = 'UPDATE booking SET username = ?, pet_name = ?, species = ?, breed = ?, appointment_date = ? WHERE booking_id = ?';
 
-    connection.query(sql, [username, pet_name, species, breed, appointment, booking_id], (error, results) => {
+    db.query(sql, [username, pet_name, species, breed, appointment_date, booking_id], (error, results) => {
         if (error) {
             console.error("Error updating Appointment:", error);
             res.status(500).send('Error updating Appointment');
         } else {
-            res.redirect('/');
+            req.flash('success', 'Appointment updated successfully!');
+            res.redirect('/admin');
         }
     });
 });
 //////////////// maha end ////////////////////////////////
 ////////////// SHOBIKA START ///////////////////////////////////////
-// Delete a user by booking id and appointment_date
-app.get('/delete/:booking_id/:appointment_date', (req, res) => {
-    
-    const { booking_id, appointment_date } = req.params;
-    const query = 'DELETE FROM bookings WHERE booking_id = ? AND appointment_date = ?';
-    db.query(query, [booking_id, appointment_date], (err, result) => {
+// Delete a booking by ID (used by user on /bookings_user page)
+app.post('/delete/:booking_id', checkAuthenticated, (req, res) => {
+    const bookingId = req.params.booking_id;
+    const username = req.session.user.username;
+
+    const query = 'DELETE FROM booking WHERE booking_id = ? AND username = ?';
+    db.query(query, [bookingId, username], (err, result) => {
         if (err) {
             console.error('Error deleting booking:', err);
+            req.flash('error', 'Error deleting booking.');
             return res.status(500).send('Error deleting booking.');
         }
-        res.redirect('/'); // or res.send('Booking deleted.');
-    });
-});
-// Use POST method for safer deletion
-app.post('/delete/:booking_id/:appointment_date', (req, res) => {
-    const { booking_id, appointment_date } = req.params;
-
-    // SQL query to delete the booking matching booking_id and appointment_date
-    const query = 'DELETE FROM bookings WHERE booking_id = ? AND appointment_date = ?';
-
-    db.query(query, [booking_id, appointment_date], (err, result) => {
-        if (err) {
-            console.error('Error deleting booking:', err);
-            return res.status(500).send('Error deleting booking.');
+        if (result.affectedRows === 0) {
+            req.flash('error', 'Booking not found or you do not have permission to delete it.');
+        } else {
+            req.flash('success', 'Booking deleted successfully!');
         }
-
-        // Redirect user back to their bookings page after deletion
         res.redirect('/bookings_user');
     });
 });
-
 ///////////////// SHOBIKA END ////////////////////////////////////////////////
 ///////////////// Candy START ////////////////////////////////
 app.get('/pets', (req, res) => {
-  const db = req.app.locals.db;
-  const query = 'SELECT * FROM pets';
+    const query = 'SELECT * FROM pets';
 
-  db.query(query, (err, results) => {
-    if (err) {
-      console.error('Error fetching pets:', err);
-      return res.status(500).send('Database error');
-    }
-    res.render('list', { pets: results });
-  });
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error('Error fetching pets:', err);
+            return res.status(500).send('Database error');
+        }
+        res.render('list', { pets: results, user: req.session.user });
+    });
 });
-
 ///////////////// Candy END ////////////////////////////////
+
