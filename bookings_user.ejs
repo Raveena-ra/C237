@@ -9,17 +9,30 @@
     <div class="container mt-5">
         <h2 class="mb-4">Appointments</h2>
 
-        <!-- 🔍 Search Form -->
+        <!--  Search + Date Filter Form by Raveena  -->
         <form class="mb-4" method="GET" action="/bookings_user">
-            <div class="input-group">
-                <input type="text" name="search" class="form-control" placeholder="Search by pet name, species, or breed" value="<%= typeof search !== 'undefined' ? search : '' %>">
-                <button type="submit" class="btn btn-dark">Search</button>
+            <div class="row g-2">
+                <div class="col-md-6">
+                    <input type="text" name="search" class="form-control" placeholder="Search by pet name, species, or breed" value="<%= typeof search !== 'undefined' ? search : '' %>">
+                </div>
+
+                <div class="col-md-4">
+                    <select name="dateFilter" class="form-select">
+                        <option value="" <%= dateFilter === '' ? 'selected' : '' %>>All</option>
+                        <option value="upcoming" <%= dateFilter === 'upcoming' ? 'selected' : '' %>>Upcoming</option>
+                        <option value="past" <%= dateFilter === 'past' ? 'selected' : '' %>>Past</option>
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-dark w-100">Filter</button>
+                </div>
             </div>
         </form>
 
         <!-- 🐾 Appointment Table -->
         <% if (bookings.length > 0) { %>
-            <table class="table table-bordered table-striped">
+            <table class="table table-bordered table-striped mt-4">
                 <thead>
                     <tr>
                         <th>Pet Name</th>
@@ -40,9 +53,8 @@
                 </tbody>
             </table>
         <% } else { %>
-            <p>You have no upcoming appointments.</p>
+            <p class="mt-4">You have no appointments that match the search/filter.</p>
         <% } %>
     </div>
 </body>
 </html>
-
