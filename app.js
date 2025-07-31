@@ -274,20 +274,19 @@ app.post('/updateAppointment/:id', (req, res) => {
 //////////////// maha end ////////////////////////////////
 ////////////// SHOBIKA START ///////////////////////////////////////
 // Delete a user by ID
-app.get('/delete/:id', (req, res) => {
-    const userId = req.params.id;
-
-    const query = 'DELETE FROM users WHERE id = ?';
-
-    db.query(query, [userId], (err, result) => {
+// Delete a user by booking id and appointment_date
+app.get('/delete/:booking_id/:appointment_date', (req, res) => {
+    const { booking_id, appointment_date } = req.params;
+    const query = 'DELETE FROM bookings WHERE booking_id = ? AND appointment_date = ?';
+    db.query(query, [booking_id, appointment_date], (err, result) => {
         if (err) {
-            console.error('Error deleting user:', err);
-            return res.status(500).send('Error deleting user.');
+            console.error('Error deleting booking:', err);
+            return res.status(500).send('Error deleting booking.');
         }
-
-        res.redirect('/'); // or res.send('User deleted.');
+        res.redirect('/'); // or res.send('Booking deleted.');
     });
 });
+
 ///////////////// SHOBIKA END ////////////////////////////////////////////////
 ///////////////// Candy START ////////////////////////////////
 app.get('/pets', (req, res) => {
