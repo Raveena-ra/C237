@@ -304,25 +304,21 @@ app.post('/updateAppointment/:id', checkAuthenticated, checkAdmin, (req, res) =>
 //////////////// maha end ////////////////////////////////
 ////////////// SHOBIKA START ///////////////////////////////////////
 // Delete a booking by ID (used by user on /bookings_user page)
-app.post('/delete/:booking_id', checkAuthenticated, (req, res) => {
-    const bookingId = req.params.booking_id;
-    const username = req.session.user.username;
+app.post('/delete/:booking_id/:appointment_date', (req, res) => {
+    const { booking_id, appointment_date } = req.params;
 
-    const query = 'DELETE FROM booking WHERE booking_id = ? AND username = ?';
-    db.query(query, [bookingId, username], (err, result) => {
+    const query = 'DELETE FROM booking WHERE booking_id = ? AND appointment_date = ?';
+
+    db.query(query, [booking_id, appointment_date], (err, result) => {
         if (err) {
             console.error('Error deleting booking:', err);
-            req.flash('error', 'Error deleting booking.');
             return res.status(500).send('Error deleting booking.');
         }
-        if (result.affectedRows === 0) {
-            req.flash('error', 'Booking not found or you do not have permission to delete it.');
-        } else {
-            req.flash('success', 'Booking deleted successfully!');
-        }
+
         res.redirect('/bookings_user');
     });
 });
+
 ///////////////// SHOBIKA END ////////////////////////////////////////////////
 ///////////////// Candy START ////////////////////////////////
 app.get('/pets', (req, res) => {
