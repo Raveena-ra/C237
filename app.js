@@ -289,6 +289,18 @@ app.get('/delete/:id', (req, res) => {
     });
 });
 ///////////////// SHOBIKA END ////////////////////////////////////////////////
+///////////////// Candy START ////////////////////////////////
+app.get('/pets', (req, res) => {
+  const db = req.app.locals.db;
+  const query = 'SELECT * FROM pets';
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Error fetching pets:', err);
+      return res.status(500).send('Database error');
+    }
+    res.render('list', { pets: results });
+  });
+});
+
+///////////////// Candy END ////////////////////////////////
