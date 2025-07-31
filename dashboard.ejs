@@ -23,17 +23,17 @@
           <a class="nav-link active" aria-current="page" href="#">Home</a>
         </li>
         <li class="nav-item ms-5">
-          <a class="nav-link active" href="#">Appointment</a>
+          <a class="nav-link active" href="/booking">Appointment</a>
         </li>
         <li class="nav-item ms-5">
           <a class="nav-link active" href="#">pricing</a>
         </li>
       </ul>
 
-      <span class="navbar-text">
+      <span class="navbar-text"> <!--user logged in-->
         <% if (currentUser) { %>
           <span class="me-2" style="font-weight: bold;">Welcome, <%= currentUser.username %></span>
-          <a href="/logout" class="me-2" style="border-radius: 25px; padding: 10px 20px; border: none; text-decoration: none; background-color: #573f1d73; color: black; font-weight: bold;">Logout</a>
+          <a href="/" style="display: inline-block; border-radius: 25px; padding: 10px 20px; background-color: #3a2405a0; color: white; text-decoration: none; border: none;">Back to Homepage</a>
         <% } else { %>
           <a href="/login" class="me-2" style="border-radius: 25px; padding: 10px 20px; border: none; text-decoration: none; background-color: #573f1d73; color: black; font-weight: bold;">Login</a>
         <% } %>
@@ -42,7 +42,7 @@
   </div>
   </nav>
 
-    <div class="container">
+    <div class="container"> <!--admin logged in-->
         <h1 class="mt-5">Welcome back! </h1>
         <% if (currentUser) { %>
             <% if (currentUser.role === 'admin') { %>
@@ -50,11 +50,7 @@
             <% } %>
 
             <a href="/logout" style="display: inline-block; border-radius: 25px; padding: 10px 20px; background-color: #3a2405a0; color: white; text-decoration: none;">Logout</a>
-        <% } else { %>
-            <a href="/index" style="display: inline-block; border-radius: 25px; padding: 10px 20px; background-color: #3a2405a0; color: white; text-decoration: none; border: none;">Back to Homepage</a>
-        <% } %>
-
-
+          <% } %>
     </div>
 </body>
 </html>
