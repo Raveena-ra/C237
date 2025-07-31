@@ -37,9 +37,9 @@
                             <td><%= booking.breed %></td>
                             <td><%= new Date(booking.appointment_date).toLocaleString() %></td>
                             <td>
-                                <!-- 🗑 Delete Form by shobika -->
-                                <form action="/delete/<%= booking.booking_id %>" method="POST" onsubmit="return confirm('Are you sure you want to delete this booking?');">
-                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                               <!-- 🗑️ Delete Form by shobika-->
+                                <form action="/delete/<%= booking.booking_id %>/<%= booking.appointment_date.toISOString() %>" method="POST" onsubmit="return confirm('Are you sure?');">
+                                     <button type="submit" class="btn btn-danger btn-sm">Delete</button>
                                 </form>
                             </td>
                         </tr>
