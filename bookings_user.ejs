@@ -12,13 +12,15 @@
         <!--  Search Form by raveena -->
         <form class="mb-4" method="GET" action="/bookings_user">
             <div class="input-group">
-                <input type="text" name="search" class="form-control" placeholder="Search by pet name, species, or breed" value="<%= typeof search !== 'undefined' ? search : '' %>">
+                <input type="text" name="search" class="form-control"
+                    placeholder="Search by pet name, species, or breed"
+                    value="<%= typeof search !== 'undefined' ? search : '' %>">
                 <button type="submit" class="btn btn-dark">Search</button>
             </div>
         </form>
 
         <!-- 🐾 Appointment Table -->
-        <% if (bookings.length > 0) { %>
+        <% if (bookings.length> 0) { %>
             <table class="table table-bordered table-striped">
                 <thead>
                     <tr>
@@ -32,23 +34,32 @@
                 <tbody>
                     <% bookings.forEach(function(booking) { %>
                         <tr>
-                            <td><%= booking.pet_name %></td>
-                            <td><%= booking.species %></td>
-                            <td><%= booking.breed %></td>
-                            <td><%= new Date(booking.appointment_date).toLocaleString() %></td>
                             <td>
-                               <!-- 🗑️ Delete Form by shobika-->
-                                <form action="/delete/<%= booking.booking_id %>/<%= booking.appointment_date.toISOString() %>" method="POST" onsubmit="return confirm('Are you sure?');">
-                                     <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-                                </form>
+                                <%= booking.pet_name %>
                             </td>
+                            <td>
+                                <%= booking.species %>
+                            </td>
+                            <td>
+                                <%= booking.breed %>
+                            </td>
+                            <td>
+                                <%= new Date(booking.appointment_date).toLocaleString() %>
+                            </td>
+                            <td>
+                                <!-- 🗑️ Delete by Shobika-->
+                                <form action="/delete/<%= booking.booking_id %>/<%= booking.appointment_date.toISOString() %>" method="POST"
+                                    onsubmit="return confirm('Are you sure?');">
+                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                </form>
+                        </td>
                         </tr>
-                    <% }); %>
+                        <% }); %>
                 </tbody>
             </table>
-        <% } else { %>
-            <p>You have no upcoming appointments.</p>
-        <% } %>
+            <% } else { %>
+                <p>You have no upcoming appointments.</p>
+                <% } %>
     </div>
 </body>
 </html>
