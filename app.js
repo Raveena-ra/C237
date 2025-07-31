@@ -15,7 +15,7 @@ const app = express();
 
 const session = require('express-session');
 const flash = require('connect-flash');
-app.use(express.urlencoded({ extended: true }));
+
 // Set up multer for file uploads
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -28,10 +28,10 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 const db = mysql.createConnection({
-    host: 'c237-all.mysql.database.azure.com',
-    user: 'c237admin',
-    password: 'c2372025!',
-    database: 'c237_016_24045392'
+    host: 'localhost',
+    user: 'root',
+    password: 'Republic_C207',
+    database: 'c237_petclinic'
 });
 
 db.connect((err) => {
@@ -69,6 +69,11 @@ app.get('/', (req, res) => {
 });
 
 //////////////////////////////////////// //IRFAH'S CODE START///////////////////////////////////////////////////////////////////////////////////////////////////
+app.use((req, res, next) => {
+    res.locals.currentUser = req.session.user || null;
+    next();
+});
+
 const checkAuthenticated = (req, res, next) => {
     if (req.session.user) {
         return next();
@@ -79,7 +84,7 @@ const checkAuthenticated = (req, res, next) => {
 };
 
 const checkAdmin = (req, res, next) => {
-    if (req.session.user && req.session.user.role === 'admin') {
+    if (req.session.user.role === 'admin') {
         return next();
     } else {
         req.flash('error', 'Access denied');
@@ -88,21 +93,20 @@ const checkAdmin = (req, res, next) => {
 };
 
 // Routes
-// Note: Duplicate app.get('/') removed for clarity, one is already defined above
+app.get('/', (req, res) => {
+    res.render('index', { user: req.session.user, messages: req.flash('success') });
+});
 
 app.get('/register', (req, res) => {
     res.render('register', { messages: req.flash('error'), formData: req.flash('formData')[0] });
 });
 
 
-//******** TODO: Create a middleware function validateRegistration ********//
 const validateRegistration = (req, res, next) => {
     const { username, email, password, contact, role } = req.body;
 
     if (!username || !email || !password || !contact || !role) {
-        req.flash('error', 'All fields are required.');
-        req.flash('formData', req.body);
-        return res.redirect('/register');
+        return res.status(400).send('All fields are required.');
     }
 
     if (password.length < 6) {
@@ -113,18 +117,14 @@ const validateRegistration = (req, res, next) => {
     next();
 };
 
-//******** TODO: Integrate validateRegistration into the register route. ********//
 app.post('/register', validateRegistration, (req, res) => {
-    //******** TODO: Update register route to include role. ********//
+
     const { username, email, password, contact, role } = req.body;
 
     const sql = 'INSERT INTO users (username, email, password, contact, role) VALUES (?, ?, SHA1(?), ?, ? )';
     db.query(sql, [username, email, password, contact, role], (err, result) => {
         if (err) {
-            console.error('Error during registration:', err);
-            req.flash('error', 'Registration failed. Please try again.');
-            req.flash('formData', req.body);
-            return res.redirect('/register');
+            throw err;
         }
         console.log(result);
         req.flash('success', 'Registration successful! Please log in.');
@@ -132,7 +132,7 @@ app.post('/register', validateRegistration, (req, res) => {
     });
 });
 
-//******** TODO: Insert code for login routes to render login page below ********//
+
 app.get('/login', (req, res) => {
     res.render('login', {
         messages: req.flash('success'),
@@ -140,7 +140,7 @@ app.get('/login', (req, res) => {
     });
 });
 
-//******** TODO: Insert code for login routes for form submission below ********//
+
 app.post('/login', (req, res) => {
     const { email, password } = req.body;
 
@@ -153,9 +153,7 @@ app.post('/login', (req, res) => {
     const sql = 'SELECT * FROM users WHERE email = ? AND password = SHA1(?)';
     db.query(sql, [email, password], (err, results) => {
         if (err) {
-            console.error('Error during login:', err);
-            req.flash('error', 'An error occurred during login. Please try again.');
-            return res.redirect('/login');
+            throw err;
         }
 
         if (results.length > 0) {
@@ -163,7 +161,7 @@ app.post('/login', (req, res) => {
             req.session.user = results[0]; // store user in session
             req.flash('success', 'Login successful!');
             // Redirect to home page instead of dashboard
-            res.redirect('/');
+            res.redirect('/dashboard');
         } else {
             // Invalid credentials
             req.flash('error', 'Invalid email or password.');
@@ -175,7 +173,7 @@ app.post('/login', (req, res) => {
 app.get('/dashboard', checkAuthenticated, (req, res) => {
     res.render('dashboard', { user: req.session.user });
 });
-//******** TODO: Insert code for admin route to render dashboard page for admin. ********//
+
 app.get('/admin', checkAuthenticated, checkAdmin, (req, res) => {
     res.render('admin', { user: req.session.user });
 });
@@ -184,7 +182,6 @@ app.get('/admin', checkAuthenticated, checkAdmin, (req, res) => {
 app.get('/logout', (req, res) => {
     req.session.destroy(err => {
         if (err) {
-            console.error('Error destroying session:', err);
             return res.redirect('/');
         }
         res.clearCookie('connect.sid');
@@ -218,12 +215,36 @@ app.post('/booking', checkAuthenticated, (req, res) => {
         }
 
         req.flash('success', 'Appointment booked successfully!');
-        res.redirect('/bookings_user');
+        res.redirect('/');
     });
 });
 
-app.get('/bookings_user', checkAuthenticated, (req, res) => {
-    ///////////// Raveena start //////////////////////////////////////////////////
+app.get('/bookings_user', (req, res) => {
+    if (!req.session.user) {
+        req.flash('error', 'You must be logged in to view your bookings.');
+        return res.redirect('/login');
+    }
+
+    const username = req.session.user.username;
+
+    const sql = 'SELECT * FROM booking WHERE username = ?';
+    db.query(sql, [username], (err, results) => {
+        if (err) {
+            console.error('Error fetching user bookings:', err);
+            return res.status(500).send('Server error');
+        }
+
+        res.render('bookings_user', {
+            bookings: results,
+            user: req.session.user,
+            messages: req.flash('success')
+        });
+    });
+});
+///////////////////////////// CHARLENE END ///////////////////////////////////////////////
+
+/////////////////// RAVI START///////////////////////////////////////
+app.get('/bookings_user', (req, res) => {
     const searchTerm = req.query.search;
     const statusFilter = req.query.status || 'all';
 
@@ -262,11 +283,43 @@ app.get('/bookings_user', checkAuthenticated, (req, res) => {
             status: statusFilter
         });
     });
-    ///////////////////// Raveena end ////////////////////////////////////////
 });
-///////////////////////////// CHARLENE END ///////////////////////////////////////////////
+///////////////////////RAVI END////////////////////////////////////////////////////
 
-///////////////// maha start ///////////////////////////////
+////////////// SHOBIKA START ////////////////////////////////////////
+app.get('/delete/:booking_id/:appointment_date/', (req, res) => {
+    const booking_id = req.params.id;
+    const sql = 'DELETE FROM booking WHERE booking_id = ?';
+    db.query(sql, [booking_id], (error, results) => {
+        if (error) {
+            // Handle any error that occurs during the database operation
+            console.error("Error deleting:", error);
+            res.status(500).send('Error deleting');
+        } else {
+            // Send a success response
+            res.redirect('/');
+        }
+    });
+});
+app.post('/delete/:booking_id/:appointment_date', (req, res) => {
+    const { booking_id, appointment_date } = req.params;
+
+    // SQL query to delete the booking matching booking_id and appointment_date
+    const query = 'DELETE FROM booking WHERE booking_id = ?';
+
+    db.query(query, [booking_id, appointment_date], (err, result) => {
+        if (err) {
+            console.error('Error deleting booking:', err);
+            return res.status(500).send('Error deleting booking.');
+        }
+
+        // Redirect user back to their bookings page after deletion
+        res.redirect('/bookings_user');
+    });
+});
+///////////////// SHOBIKA END ////////////////////////////////////////////////
+
+/////////// MAHA START ////////////////////////////////////
 app.get('/updateAppointment/:id', checkAuthenticated, checkAdmin, (req, res) => {
     const booking_id = req.params.id;
     const sql = 'SELECT * FROM booking WHERE booking_id = ?';
@@ -301,25 +354,8 @@ app.post('/updateAppointment/:id', checkAuthenticated, checkAdmin, (req, res) =>
         }
     });
 });
-//////////////// maha end ////////////////////////////////
-////////////// SHOBIKA START ///////////////////////////////////////
-// Delete a booking by ID (used by user on /bookings_user page)
-app.post('/delete/:booking_id/:appointment_date', (req, res) => {
-    const { booking_id, appointment_date } = req.params;
+/////////////// MAHA END ////////////////////////////
 
-    const query = 'DELETE FROM booking WHERE booking_id = ? AND appointment_date = ?';
-
-    db.query(query, [booking_id, appointment_date], (err, result) => {
-        if (err) {
-            console.error('Error deleting booking:', err);
-            return res.status(500).send('Error deleting booking.');
-        }
-
-        res.redirect('/bookings_user');
-    });
-});
-
-///////////////// SHOBIKA END ////////////////////////////////////////////////
 ///////////////// Candy START ////////////////////////////////
 app.get('/pets', (req, res) => {
     const query = 'SELECT * FROM pets';
@@ -333,4 +369,5 @@ app.get('/pets', (req, res) => {
     });
 });
 ///////////////// Candy END ////////////////////////////////
-
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log());
