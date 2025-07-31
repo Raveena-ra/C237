@@ -273,9 +273,9 @@ app.post('/updateAppointment/:id', (req, res) => {
 });
 //////////////// maha end ////////////////////////////////
 ////////////// SHOBIKA START ///////////////////////////////////////
-// Delete a user by ID
 // Delete a user by booking id and appointment_date
 app.get('/delete/:booking_id/:appointment_date', (req, res) => {
+    
     const { booking_id, appointment_date } = req.params;
     const query = 'DELETE FROM bookings WHERE booking_id = ? AND appointment_date = ?';
     db.query(query, [booking_id, appointment_date], (err, result) => {
@@ -284,6 +284,23 @@ app.get('/delete/:booking_id/:appointment_date', (req, res) => {
             return res.status(500).send('Error deleting booking.');
         }
         res.redirect('/'); // or res.send('Booking deleted.');
+    });
+});
+// Use POST method for safer deletion
+app.post('/delete/:booking_id/:appointment_date', (req, res) => {
+    const { booking_id, appointment_date } = req.params;
+
+    // SQL query to delete the booking matching booking_id and appointment_date
+    const query = 'DELETE FROM bookings WHERE booking_id = ? AND appointment_date = ?';
+
+    db.query(query, [booking_id, appointment_date], (err, result) => {
+        if (err) {
+            console.error('Error deleting booking:', err);
+            return res.status(500).send('Error deleting booking.');
+        }
+
+        // Redirect user back to their bookings page after deletion
+        res.redirect('/bookings_user');
     });
 });
 
