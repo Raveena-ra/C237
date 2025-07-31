@@ -15,7 +15,7 @@ const app = express();
 
 const session = require('express-session');
 const flash = require('connect-flash');
-
+app.use(express.urlencoded({ extended: true }));
 // Set up multer for file uploads
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
