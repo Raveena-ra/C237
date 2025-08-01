@@ -379,25 +379,34 @@ app.get('/view', checkAuthenticated, checkAdmin, (req, res) => {
 });
 
 app.post('/view', checkAuthenticated, checkAdmin, (req, res) => {
-    const petName = req.body.pet_name;
-
+    const { pet_name, species } = req.body;
     let sql = 'SELECT * FROM booking';
     let params = [];
+    let conditions = [];
 
-    if (petName) {
-        sql += ' WHERE pet_name LIKE ?';
-        params.push('%' + petName + '%');
+    if (pet_name) {
+        conditions.push('pet_name LIKE ?');
+        params.push(`%${pet_name}%`);
+    }
+
+    if (species) {
+        conditions.push('species LIKE ?');
+        params.push(`%${species}%`);
+    }
+
+    if (conditions.length > 0) {
+        sql += ' WHERE ' + conditions.join(' AND ');
     }
 
     db.query(sql, params, (err, results) => {
         if (err) {
-            console.error('Error filtering appointments:', err);
+            console.error('Error filtering:', err);
             return res.status(500).send('Server error');
         }
-
-        res.render('view', { bookings: results });
+        res.render('admin', { bookings: results, currentUser: req.session.user });
     });
 });
+
 ///////////////// Candy END ////////////////////////////////
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log());
