@@ -357,15 +357,45 @@ app.post('/updateAppointment/:id', checkAuthenticated, checkAdmin, (req, res) =>
 /////////////// MAHA END ////////////////////////////
 
 ///////////////// Candy START ////////////////////////////////
-app.get('/pets', (req, res) => {
-    const query = 'SELECT * FROM pets';
+app.get('/view', checkAuthenticated, checkAdmin, (req, res) => {
+    const species = req.query.species;
 
-    db.query(query, (err, results) => {
-        if (err) {
-            console.error('Error fetching pets:', err);
-            return res.status(500).send('Database error');
+    let sql = 'SELECT * FROM booking';
+    let params = [];
+
+    if (species) {
+        sql += ' WHERE species LIKE ?';
+        params.push('%' + species + '%');
+    }
+
+    db.query(sql, params, (error, results) => {
+        if (error) {
+            console.error('Error filtering appointments:', error);
+            return res.status(500).send('Failed to retrieve filtered results');
         }
-        res.render('list', { pets: results, user: req.session.user });
+
+        res.render('view', { bookings: results });
+    });
+});
+
+app.post('/view', checkAuthenticated, checkAdmin, (req, res) => {
+    const petName = req.body.pet_name;
+
+    let sql = 'SELECT * FROM booking';
+    let params = [];
+
+    if (petName) {
+        sql += ' WHERE pet_name LIKE ?';
+        params.push('%' + petName + '%');
+    }
+
+    db.query(sql, params, (err, results) => {
+        if (err) {
+            console.error('Error filtering appointments:', err);
+            return res.status(500).send('Server error');
+        }
+
+        res.render('view', { bookings: results });
     });
 });
 ///////////////// Candy END ////////////////////////////////
